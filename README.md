@@ -12,7 +12,7 @@
 ## Requirements
 
 - **Python**: 3.11 or higher
-- **Django**: 5.10 or higher
+- **Django**: 5.1 or higher
 - **SQLite**: No additional installation required (built-in with Python)
 - **AWS Services**:
   - **AWS Lambda**: For running the code.
