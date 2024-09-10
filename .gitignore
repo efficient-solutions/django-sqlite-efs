@@ -6,3 +6,6 @@ samconfig.toml
 .devcontainer
 .github
 .vscode
+build
+dist
+*.egg-info
