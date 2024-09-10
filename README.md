@@ -1,6 +1,6 @@
 # Django SQLite EFS Backend
 
-**django_sqlite_efs** is a custom **database backend** for Django, designed to work with **SQLite** on **AWS Lambda** using **Amazon EFS (Elastic File System)** and **Amazon DynamoDB**. This backend provides a solution to protect SQLite databases from corruption caused by concurrent writes in network-attached storage environments that lack proper file locking mechanisms for SQLite.
+**django_sqlite_efs** is a custom database backend for Django, designed to work with **SQLite** on **AWS Lambda** using **Amazon EFS** (Elastic File System) and **Amazon DynamoDB**. This backend provides a solution to protect SQLite databases from corruption caused by concurrent writes in network-attached storage environments that lack proper file locking mechanisms for SQLite.
 
 ## Features
 
