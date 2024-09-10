@@ -7,6 +7,7 @@ import os
 import time
 import uuid
 import logging
+from typing import Any
 from decimal import Decimal
 
 import boto3
@@ -16,7 +17,7 @@ from boto3.dynamodb.table import TableResource
 from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ClientError
 
-from .settings import get_setting
+from django.conf import settings
 from .exceptions import DatabaseBusy
 
 logger = logging.getLogger(__name__)
@@ -46,10 +47,10 @@ class DynamoDBLockManager():  # pylint: disable=too-many-instance-attributes
         else:
             self.lock_wait_timeout = 3
         self.max_lock_attempts = int(
-            get_setting('SQLITE_LOCK_MAX_ATTEMPTS', default=10, required=False)
+            self.get_setting('SQLITE_LOCK_MAX_ATTEMPTS', default=10, required=False)
         )
-        self.lock_expiration: int = int(get_setting('SQLITE_LOCK_EXPIRATION'))
-        self._dynamodb_lock_table_name: str = get_setting('SQLITE_LOCK_DYNAMODB_TABLE')
+        self.lock_expiration: int = int(self.get_setting('SQLITE_LOCK_EXPIRATION'))
+        self._dynamodb_lock_table_name: str = self.get_setting('SQLITE_LOCK_DYNAMODB_TABLE')
         self.current_lock_id: str | None = None
         self.lock_acquired_timestamp: Decimal | None = None
         self.lock_expiry_timestamp: Decimal | None = None
@@ -91,6 +92,36 @@ class DynamoDBLockManager():  # pylint: disable=too-many-instance-attributes
         if not self.is_transaction:
             self.release_lock()
         self.current_sql_query = None
+
+    def get_setting(self, key: str, default: Any = None, required: bool = True) -> Any:
+        """
+        Retrieve a configuration setting from Django settings or environment variables.
+
+        This function tries to retrieve the specified setting from Django's settings module. 
+        If the setting is not found in Django settings, it looks for the same setting 
+        in the environment variables. If neither source provides a value, it returns a default 
+        or raises an exception if the setting is marked as required.
+
+        Args:
+            key (str): The name of the setting to retrieve.
+            default (Any, optional): A default value to return if the setting is not found. 
+                                    Defaults to None.
+            required (bool, optional): Whether the setting is mandatory. If True and the setting 
+                                    is not found, raises an exception. Defaults to True.
+
+        Raises:
+            ImproperlyConfigured: Raised if the setting is required but not found in either
+                                Django settings or environment variables.
+
+        Returns:
+            Any: The value of the requested setting, or the default value if not found.
+        """
+        # Attempt to get the setting from Django's settings or environment variables.
+        value = getattr(settings, key, os.environ.get(key, default))
+        # Raise an error if the setting is required but not set.
+        if required and value is None:
+            raise ImproperlyConfigured(f"{key} or environment variable {key} is required but not set.")
+        return value
 
     def rollback_journal_exists(self):
         """
@@ -281,6 +312,13 @@ class DynamoDBLockManager():  # pylint: disable=too-many-instance-attributes
                 )
             except BotoCoreError as e:
                 logger.error(
+                    "Failed to add lock record to DynamoDB. Key: '%s', Attempt: %d, Error: '%s'.",
+                    self.dynamodb_primary_key,
+                    lock_attempt_count,
+                    str(e)
+                )
+            except Exception as e:
+                logger.critical(
                     "Failed to add lock record to DynamoDB. Key: '%s', Attempt: %d, Error: '%s'.",
                     self.dynamodb_primary_key,
                     lock_attempt_count,
