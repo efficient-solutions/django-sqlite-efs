@@ -18,7 +18,7 @@ from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ClientError
 
 from django.conf import settings
-from .exceptions import DatabaseBusy
+from .exceptions import ImproperlyConfigured, DatabaseBusy
 
 logger = logging.getLogger(__name__)
 
@@ -120,7 +120,9 @@ class DynamoDBLockManager():  # pylint: disable=too-many-instance-attributes
         value = getattr(settings, key, os.environ.get(key, default))
         # Raise an error if the setting is required but not set.
         if required and value is None:
-            raise ImproperlyConfigured(f"{key} or environment variable {key} is required but not set.")
+            raise ImproperlyConfigured(
+                f"{key} or environment variable {key} is required but not set."
+            )
         return value
 
     def rollback_journal_exists(self):
@@ -317,7 +319,7 @@ class DynamoDBLockManager():  # pylint: disable=too-many-instance-attributes
                     lock_attempt_count,
                     str(e)
                 )
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.critical(
                     "Failed to add lock record to DynamoDB. Key: '%s', Attempt: %d, Error: '%s'.",
                     self.dynamodb_primary_key,
