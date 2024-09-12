@@ -1,8 +1,6 @@
-"""
-setup.py: distutils/setuptools install script.
-"""
-
 #!/usr/bin/env python
+
+"""setup.py: distutils/setuptools install script."""
 
 from setuptools import setup
 
