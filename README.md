@@ -19,6 +19,15 @@
   - **Amazon EFS**: For storing the SQLite database.
   - **Amazon DynamoDB**: For distributed locking to prevent concurrent writes.
 
+## Demo
+
+A basic Django polls application:
+
+- [Live Demo](https://efficient.solutions/link/qxamw/)
+- [Admin Portal](https://efficient.solutions/link/ffypx/) (read-only)
+  - **Username:** demo
+  - **Password:** djangoserverless
+
 ## Installation
 
 To install `django-sqlite-efs`, simply use pip:
